@@ -1,24 +1,26 @@
-import {LobbyRoom, Room} from "colyseus";
+import {Client, LobbyRoom, Room} from "colyseus";
 
 export class CocosLobbyRoom extends LobbyRoom {
     // this room supports only 4 clients connected
     maxClients = 4;
 
-    onCreate (options) {
+    // @ts-ignore
+    onCreate (options: any): Promise<void> {
         console.log("ChatRoom created!", options);
 
         this.onMessage("message", (client, message) => {
             console.log("ChatRoom received message from", client.sessionId, ":", message);
-            this.broadcast("messages", `(${client.sessionId}) ${message}`);
+            this.broadcast("messages", `(${client.userData}): ${message}`);
         });
     }
 
-    onJoin (client) {
-        this.broadcast("messages", `${ client.sessionId } joined.`);
+    onJoin (client: Client, options: any) {
+        client.userData = options.userName;
+        this.broadcast("messages", `${ client.userData } joined.`);
     }
 
-    onLeave (client) {
-        this.broadcast("messages", `${ client.sessionId } left.`);
+    onLeave (client: Client) {
+        this.broadcast("messages", `${ client.userData } left.`);
     }
 
     onDispose () {

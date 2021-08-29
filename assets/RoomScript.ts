@@ -1,44 +1,40 @@
 
-import { _decorator, Component, Node } from 'cc';
+import { _decorator, Component, Node, Button, EditBox } from 'cc';
+import { ClientScript } from './ClientScript';
 const { ccclass, property } = _decorator;
 
-/**
- * Predefined variables
- * Name = RoomScript
- * DateTime = Sun Aug 29 2021 18:36:37 GMT+0800 (中国标准时间)
- * Author = CocosGames
- * FileBasename = RoomScript.ts
- * FileBasenameNoExtension = RoomScript
- * URL = db://assets/RoomScript.ts
- * ManualUrl = https://docs.cocos.com/creator/3.3/manual/zh/
- *
- */
  
 @ccclass('RoomScript')
 export class RoomScript extends Component {
-    // [1]
-    // dummy = '';
 
-    // [2]
-    // @property
-    // serializableDummy = 0;
+    @property(EditBox) lobbyBox:EditBox = null;
+    @property(EditBox) messageBox:EditBox = null;
+    @property(Button) sendButton:Button = null;
+    @property(Node) clientNode:Node = null;
 
     start () {
-        // [3]
+        this.clientNode = this.node.parent.getChildByName("ClientNode");
+        this.clientNode.on("messages", (message)=>{
+            this.lobbyBox.string+=message+"\n";
+        });
+        this.messageBox.focus();
     }
 
-    // update (deltaTime: number) {
-    //     // [4]
-    // }
-}
+    onMessageBoxEdit()
+    {
+        if (this.messageBox.string.length>0 && !this.sendButton.interactable)
+            this.sendButton.interactable = true;
+        else if (this.messageBox.string.length == 0 && this.sendButton.interactable)
+            this.sendButton.interactable = false;
+    }
 
-/**
- * [1] Class member could be defined like this.
- * [2] Use `property` decorator if your want the member to be serializable.
- * [3] Your initialization goes here.
- * [4] Your update function goes here.
- *
- * Learn more about scripting: https://docs.cocos.com/creator/3.3/manual/zh/scripting/
- * Learn more about CCClass: https://docs.cocos.com/creator/3.3/manual/zh/scripting/ccclass.html
- * Learn more about life-cycle callbacks: https://docs.cocos.com/creator/3.3/manual/zh/scripting/life-cycle-callbacks.html
- */
+    onSendButtonClick()
+    {
+        if (this.sendButton.interactable && this.messageBox.string.length>0)
+        {
+            this.sendButton.interactable = false;
+            this.clientNode.getComponent<ClientScript>(ClientScript).send(this.messageBox.string);
+            this.messageBox.string = "";
+        }
+    }
+}

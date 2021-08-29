@@ -1,44 +1,37 @@
 
-import { _decorator, Component, Node } from 'cc';
+import { _decorator, Component, Node, director, game, EditBox, Button } from 'cc';
+import { ClientScript } from './ClientScript';
 const { ccclass, property } = _decorator;
 
-/**
- * Predefined variables
- * Name = LoginScript
- * DateTime = Sun Aug 29 2021 18:36:27 GMT+0800 (中国标准时间)
- * Author = CocosGames
- * FileBasename = loginScript.ts
- * FileBasenameNoExtension = loginScript
- * URL = db://assets/loginScript.ts
- * ManualUrl = https://docs.cocos.com/creator/3.3/manual/zh/
- *
- */
- 
+
 @ccclass('LoginScript')
 export class LoginScript extends Component {
-    // [1]
-    // dummy = '';
-
-    // [2]
-    // @property
-    // serializableDummy = 0;
+    @property(Node) clientNode:Node = null;
+    @property(EditBox) nameBox:EditBox = null;
+    @property(Button) okButton:Button = null;
 
     start () {
-        // [3]
+        if (this.clientNode && !game.isPersistRootNode(this.clientNode))
+            game.addPersistRootNode(this.clientNode);
+        this.nameBox.focus();
     }
 
-    // update (deltaTime: number) {
-    //     // [4]
-    // }
-}
+    onNameBoxEdit()
+    {
+        if (this.nameBox.string.length>0 && !this.okButton.interactable)
+            this.okButton.interactable = true;
+        else if (this.nameBox.string.length == 0 && this.okButton.interactable)
+            this.okButton.interactable = false;
+    }
 
-/**
- * [1] Class member could be defined like this.
- * [2] Use `property` decorator if your want the member to be serializable.
- * [3] Your initialization goes here.
- * [4] Your update function goes here.
- *
- * Learn more about scripting: https://docs.cocos.com/creator/3.3/manual/zh/scripting/
- * Learn more about CCClass: https://docs.cocos.com/creator/3.3/manual/zh/scripting/ccclass.html
- * Learn more about life-cycle callbacks: https://docs.cocos.com/creator/3.3/manual/zh/scripting/life-cycle-callbacks.html
- */
+    onOKButtonClick()
+    {
+        if (this.okButton.interactable && this.nameBox.string.length>0)
+        {
+            this.okButton.interactable=false;
+            this.clientNode.getComponent<ClientScript>(ClientScript).connect(this.nameBox.string);
+            director.loadScene("room");
+        }
+    }
+   
+}

@@ -13,7 +13,7 @@ export default Arena({
         /**
          * Define your room handlers:
          */
-        gameServer.define('my_room', CocosLobbyRoom);
+        gameServer.define('lobby', CocosLobbyRoom);
 
     },
 

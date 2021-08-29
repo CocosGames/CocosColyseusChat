@@ -1,44 +1,32 @@
-
 import { _decorator, Component, Node } from 'cc';
 const { ccclass, property } = _decorator;
 
-/**
- * Predefined variables
- * Name = ClientScript
- * DateTime = Sun Aug 29 2021 18:36:15 GMT+0800 (中国标准时间)
- * Author = CocosGames
- * FileBasename = ClientScript.ts
- * FileBasenameNoExtension = ClientScript
- * URL = db://assets/ClientScript.ts
- * ManualUrl = https://docs.cocos.com/creator/3.3/manual/zh/
- *
- */
- 
+import Colyseus from 'db://colyseus-sdk/colyseus.js';
+
 @ccclass('ClientScript')
 export class ClientScript extends Component {
-    // [1]
-    // dummy = '';
+    @property hostname = "localhost";
+    @property port = 2567;
+    @property useSSL = false;
 
-    // [2]
-    // @property
-    // serializableDummy = 0;
+    client!: Colyseus.Client;
+    room!: Colyseus.Room;
 
-    start () {
-        // [3]
+    async connect (userName:string="") {
+        this.client = new Colyseus.Client(`${this.useSSL ? "wss" : "ws"}://${this.hostname}${([443, 80].includes(this.port) || this.useSSL) ? "" : `:${this.port}`}`);
+        try {
+            this.room = await this.client.joinOrCreate("lobby", {userName:userName});
+            this.room.onMessage("messages", (message) => {
+                this.node.emit("messages", message);
+            });
+
+        } catch (e) {
+            console.error(e);
+        }
     }
 
-    // update (deltaTime: number) {
-    //     // [4]
-    // }
+    send (message:string="")
+    {
+        this.room.send("message", message);
+    }
 }
-
-/**
- * [1] Class member could be defined like this.
- * [2] Use `property` decorator if your want the member to be serializable.
- * [3] Your initialization goes here.
- * [4] Your update function goes here.
- *
- * Learn more about scripting: https://docs.cocos.com/creator/3.3/manual/zh/scripting/
- * Learn more about CCClass: https://docs.cocos.com/creator/3.3/manual/zh/scripting/ccclass.html
- * Learn more about life-cycle callbacks: https://docs.cocos.com/creator/3.3/manual/zh/scripting/life-cycle-callbacks.html
- */
